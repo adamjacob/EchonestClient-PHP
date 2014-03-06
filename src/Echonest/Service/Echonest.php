@@ -33,6 +33,32 @@ final class Echonest {
         self::$source = $source;
     }
 
+    static public function build_url_params($params){
+
+        $data = '';
+
+        foreach ($params as $key => $value) {
+
+            if( is_array($value) ){
+
+                foreach ($value as $sub_value) {
+
+                    $data .= '&' . $key . '=' . urlencode( $sub_value );
+
+                }
+
+            }else{
+            
+                $data .= '&' . $key . '=' . urlencode( $value );
+            
+            }
+
+        }
+
+        return $data;
+
+    }
+
     static public function query($api, $command, $options = null) {
         // Validate configuration
         if (!self::getApiKey()) {
@@ -47,8 +73,6 @@ final class Echonest {
         $format = 'json';
 
         if(is_array($options)) {
-            $http->setUri( self::$source . $api . '/' . $command);
-            $options['api_key'] = self::getApiKey();
 
             if (!isset($options['format'])) {
                 $options['format'] = $format;
@@ -56,7 +80,12 @@ final class Echonest {
                 $format = $options['format'];
             }
 
-            $http->setParameterGet($options);
+            $options['api_key'] = self::getApiKey();
+
+            $options = self::build_url_params($options);
+
+            $http->setUri( self::$source . $api . '/' . $command . '?' . $options);
+
         } else {
             #options as a query string
             if (!$options )
